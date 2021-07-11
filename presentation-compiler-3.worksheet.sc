@@ -1,7 +1,6 @@
 import $dep.`org.scala-lang::scala3-compiler:3.0.0`
 import $dep.`io.get-coursier:interface:1.0.4`
 
-import java.nio.file.Path
 import java.io.File
 
 import dotty.tools.dotc.interactive.InteractiveDriver
@@ -26,7 +25,7 @@ fetch.addDependencies(
   Dependency.of("org.scala-lang", "scala3-library_3", "3.0.0")
 )
 
-val extraLibraries: Seq[Path] = fetch
+val extraLibraries = fetch
   .fetch()
   .asScala
   .map(_.toPath())
@@ -52,14 +51,20 @@ driver.run(
   sourceFile
 )
 
+// If we simply wanted the full tree, this would give it to us.
 val tree = driver.currentCtx.run.units.head.untpdTree
 
-// 35 between He<<cursor>>llo
+// 35 between H<<cursor>>ello
 val pos = new SourcePosition(sourceFile, Spans.Span(35))
 
- val trees =
-   Interactive.pathTo(driver.openedTrees(uri), pos)(using ctx)
+val trees =
+  Interactive.pathTo(driver.openedTrees(uri), pos)
 
- trees.map { tree =>
-   (tree.sourcePos.start, tree.sourcePos.end)
- }.distinct
+val ranges = trees.map { tree =>
+  (tree.sourcePos.start, tree.sourcePos.end)
+}.distinct
+
+assert(
+  ranges == List((34, 48), (26, 49), (0, 49)),
+  "Correct ranges not found"
+)

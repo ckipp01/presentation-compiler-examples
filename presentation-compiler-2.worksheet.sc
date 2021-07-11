@@ -1,19 +1,14 @@
 import $dep.`org.scala-lang:scala-compiler:2.13.6`
 
-import scala.reflect.internal.util.ScriptSourceFile
 import scala.reflect.io.VirtualDirectory
 import scala.tools.nsc.interactive.Global
 import scala.tools.nsc.reporters.ConsoleReporter
 import scala.tools.nsc.Settings
 
-val ourScalaCode = """|package example
-                      |
-                      |object Main extends App {
+val ourScalaCode = """|object Main extends App {
                       |  def greeting(word: String): Unit = {
                       |    println(word)
                       |  }
-                      |
-                      |  greeting("hi")
                       |}
                       |""".stripMargin
 
@@ -30,6 +25,7 @@ import compiler._
 
 val unit = newCompilationUnit(ourScalaCode)
 
+// If we simply wanted the full tree, this would give it to us.
 val tree = compiler.parseTree(unit.source)
 
 // This should be right in the wo<<cursor>>rd parameter in greeting
@@ -42,7 +38,7 @@ compiler.onUnitOf(pos.source) { unit =>
   new MetalsLocator(pos).locateIn(tree)
 }
 
-// A copy pasta of the locator we actually use in Metals
+// This is very similiar to the custom traverser that we use in Metals, just simplified a bit.
 class MetalsLocator(pos: Position) extends Traverser {
   def locateIn(root: Tree): Tree = {
     lastVisitedParentTrees = Nil
@@ -66,7 +62,7 @@ class MetalsLocator(pos: Position) extends Traverser {
               val annotationTrees = mdef.mods.annotations match {
                 case Nil if mdef.symbol != null =>
                   // After typechecking, annotations are moved from the modifiers
-                  // to the annotation on the symbol of the annotatee.
+                  // to the annotation on the symbol of the annotationTrees
                   mdef.symbol.annotations.map(_.original)
                 case anns => anns
               }
@@ -79,6 +75,11 @@ class MetalsLocator(pos: Position) extends Traverser {
 }
 
 // Here are the unique semantic selection ranges
-lastVisitedParentTrees.map { tree =>
+val ranges = lastVisitedParentTrees.map { tree =>
   (tree.pos.start, tree.pos.end)
 }.distinct
+
+assert(
+  ranges == List((56, 60), (28, 86), (12, 88), (0, 88)),
+  "Correct ranges not found"
+)
