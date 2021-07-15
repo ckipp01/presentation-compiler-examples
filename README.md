@@ -22,4 +22,4 @@ For the Scala 2 example
 ```
 
 These will print out the selection ranges for the code provided in the
-`ourScalaCode` in each `SeelctionRanges.scala` file.
+`ourScalaCode` variable in each of the `SelectionRanges.scala` files.
