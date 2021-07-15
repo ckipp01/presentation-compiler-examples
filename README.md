@@ -13,7 +13,7 @@ You can try out the example by simply running each module via Mill.
 
 For the Scala 3 example
 ```sh
-./mill scala-2-presentation-compiler-examples.run
+./mill scala-3-presentation-compiler-examples.run
 ```
 
 For the Scala 2 example
