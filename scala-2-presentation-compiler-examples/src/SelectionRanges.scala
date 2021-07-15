@@ -24,20 +24,21 @@ object SelectionRanges extends App {
 
   val unit = newCompilationUnit(ourScalaCode)
 
-// If we simply wanted the full tree, this would give it to us.
+  // If we simply wanted the full tree, this would give it to us.
   val tree = compiler.parseTree(unit.source)
 
   // no the i in String
   val pos = unit.position(50)
 
-// Our fake little cache that we'll "cache" the trees that we visited
+  // Our fake little cache that we'll "cache" the trees that we visited
   var lastVisitedParentTrees: List[Tree] = Nil
 
   compiler.onUnitOf(pos.source) { _ =>
     new MetalsLocator(pos).locateIn(tree)
   }
 
-// This is very similiar to the custom traverser that we use in Metals, just simplified a bit.
+  // This is very similiar to the custom traverser that we use in Metals, just
+  // simplified a bit.
   class MetalsLocator(pos: Position) extends Traverser {
     def locateIn(root: Tree): Tree = {
       lastVisitedParentTrees = Nil
@@ -73,7 +74,7 @@ object SelectionRanges extends App {
     }
   }
 
-// Here are the unique semantic selection ranges
+  // Here are the unique semantic selection ranges
   val ranges = lastVisitedParentTrees.map { tree =>
     (tree.pos.start, tree.pos.end)
   }.distinct
@@ -85,5 +86,6 @@ object SelectionRanges extends App {
         .copy(colorLiteral = fansi.Color.Blue)
         .pprintln(s"Selection Range: ${index + 1}")
       pprint.pprintln(selection)
+      println()
     }
 }

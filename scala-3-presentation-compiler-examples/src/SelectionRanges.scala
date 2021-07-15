@@ -11,6 +11,8 @@ import coursierapi.Dependency
 import coursierapi.Fetch
 
 import scala.jdk.CollectionConverters._
+import dotty.tools.dotc.ast.Trees.Tree
+import dotty.tools.dotc.ast.Trees.Untyped
 
 object SelectionRanges:
   @main def createSelectionRanges: Unit =
@@ -39,25 +41,31 @@ object SelectionRanges:
       )
     )
 
-    given ctx: Context = driver.currentCtx
-
     val filename = "Example.scala"
     val uri = java.net.URI.create(s"file:///$filename")
 
     val sourceFile = SourceFile.virtual(filename, ourScalaCode)
 
-    driver.run(
+    val diagnostics = driver.run(
       uri,
       sourceFile
     )
 
-    // If we simply wanted the full tree, this would give it to us.
-    val tree = driver.currentCtx.run.units.head.untpdTree
+    assert(diagnostics.isEmpty)
+
+    // We won't actually use this, but if we wanted we could already
+    // get the entire tree here
+    val tree: Option[Tree[Untyped]] =
+      driver.currentCtx.run.units.headOption.map(_.untpdTree)
 
     // 35 between H<<cursor>>ello
-    val pos = new SourcePosition(sourceFile, Spans.Span(55))
+    val pos: SourcePosition = new SourcePosition(sourceFile, Spans.Span(55))
 
-    val trees =
+    given ctx: Context = driver.currentCtx
+
+    // Note that we actually have typed trees here, which we don't need for
+    // this feature.
+    val trees: List[dotty.tools.dotc.ast.tpd.Tree] =
       Interactive.pathTo(driver.openedTrees(uri), pos)
 
     val ranges = trees.map { tree =>
@@ -71,4 +79,5 @@ object SelectionRanges:
           .copy(colorLiteral = fansi.Color.Blue)
           .pprintln(s"Selection Range: ${index + 1}")
         pprint.pprintln(selection)
+        println()
       }
