@@ -24,7 +24,7 @@ object SelectionRanges:
     val fetch = Fetch.create()
 
     fetch.addDependencies(
-      Dependency.of("org.scala-lang", "scala3-library_3", "3.0.0")
+      Dependency.of("org.scala-lang", "scala3-library_3", "3.1.0")
     )
 
     val extraLibraries = fetch
